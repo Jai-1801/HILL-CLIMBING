@@ -1,47 +1,91 @@
-#!/usr/bin/env python
-# coding: utf-8
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
-# In[ ]:
+#define MAX_LENGTH 100
 
+// Function to calculate the fitness score (number of different characters)
+int calculate_fitness(char* goal, char* current) {
+    int score = 0;
+    for (int i = 0; i < strlen(goal); i++) {
+        if (goal[i] != current[i]) {
+            score++;
+        }
+    }
+    return score;
+}
 
-import random
-import string
-def generate_random_solution(answer):
-    l=TYPE THE CODE HERE ,FIND THE LEN OF answer and store in l
-    return [random.choice(string.printable) for _ in range(l)]
-def evaluate(solution,answer):
-    print(solution)
-    target=list(answer)
-    diff=0
-    for i in range(len(target)):
-        s=solution[i]
-        t=target[i]
-        #to calculate the "difference" between two strings, character by character.
-        #ord(s) - ord(t) calculates the difference between the ASCII values of the characters s and t.
-         #abs() takes the absolute value of this difference to ensure that it is non-negative. This is important because the difference could be negative if s is less than t in terms of ASCII value.
-         #The absolute value ensures that the difference is always positive or zero.
-        diff +=Type the code here by referring to the above description 
-    return diff
-def mutate_solution(solution):
-    ind=random.randint(0,len(solution)-1)
-    solution[ind]=random.choice(string.printable)
-    return solution
-def SimpleHillClimbing():
-    answer="Artificial Intelligence"
-    best=generate_random_solution(answer)
-    best_score=evaluate(best,answer)
-    while True:
-        print("Score:",best_score," Solution : ","".join(best))  
-        if best_score==0:
-            break
-        new_solution=mutate_solution(list(best))
-        score=evaluate(new_solution,answer)   
-        if score<best_score:
-            best=new_solution
-            best_score=score
-#answer="Artificial Intelligence"
-#print(generate_random_solution(answer))
-#solution=generate_random_solution(answer)
-#print(evaluate(solution,answer))
-SimpleHillClimbing()
+// Function to mutate a random character in the string
+void mutate_string(char* current, int length) {
+    int random_index = rand() % length;
+    // Generate a random ASCII character (space or alphabet)
+    char random_char = (rand() % 27) + 'a';  // 26 letters + space
+    if (random_char == 'a' + 26) {
+        random_char = ' ';  // Replace 27th character with space
+    }
+    current[random_index] = random_char;
+}
 
+// Function to copy one string to another
+void copy_string(char* source, char* destination, int length) {
+    for (int i = 0; i < length; i++) {
+        destination[i] = source[i];
+    }
+    destination[length] = '\0';
+}
+
+// Hill Climbing Algorithm
+void hill_climbing(char* goal) {
+    int length = strlen(goal);
+    char current[MAX_LENGTH];
+    char new_string[MAX_LENGTH];
+    
+    // Generate a random initial string
+    for (int i = 0; i < length; i++) {
+        current[i] = (rand() % 27) + 'a';  // random letter or space
+        if (current[i] == 'a' + 26) {
+            current[i] = ' ';
+        }
+    }
+    current[length] = '\0';
+    
+    int current_fitness = calculate_fitness(goal, current);
+    
+    printf("Initial: %s | Score: %d\n", current, current_fitness);
+    
+    int iterations = 0;
+    // Loop until the goal is achieved (fitness score is 0)
+    while (current_fitness > 0) {
+        copy_string(current, new_string, length);
+        mutate_string(new_string, length);
+        
+        int new_fitness = calculate_fitness(goal, new_string);
+        
+        // If the new string has better fitness, update the current string
+        if (new_fitness < current_fitness) {
+            copy_string(new_string, current, length);
+            current_fitness = new_fitness;
+        }
+        
+        // Print the progress
+        printf("Iteration %d: %s | Score: %d\n", iterations, current, current_fitness);
+        iterations++;
+    }
+
+    printf("Goal achieved in %d iterations: %s\n", iterations, current);
+}
+
+// Main function
+int main() {
+    srand(time(0));  // Initialize random seed
+    
+    char goal[MAX_LENGTH];
+    
+    fgets(goal, MAX_LENGTH, stdin);
+    goal[strcspn(goal, "\n")] = 0;  // Remove newline character from input
+    
+    hill_climbing(goal);
+    
+    return 0;
+}
